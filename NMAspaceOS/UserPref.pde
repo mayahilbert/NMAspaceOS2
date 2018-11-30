@@ -1,5 +1,4 @@
 void loadSettings() {
-  loadingSettings = true;
   //load file
   try {
     userpref = loadJSONObject(dataFileName);
@@ -20,7 +19,7 @@ void loadSettings() {
     }
     for (int i=0; i<executables.size(); i++) {
       JSONObject executable = (JSONObject)executables.get(i);
-
+      //file path
       String filepath = executable.getString("path");
       Textarea ta = filePathTextAreas.get(i);
 
@@ -32,6 +31,7 @@ void loadSettings() {
         println("["+i+"] filepath is null");
       }
 
+      //file type
       String filetype = executable.getString("type");
       if (filetype != "" && filetype.length() > 1) {
         println("["+i+"]  Loading types: " + filetype);
@@ -49,32 +49,37 @@ void loadSettings() {
         println("["+i+"]:  type invalid");
       }
 
-      //interval
-      int _interval = -1;
-      try {
-        _interval = executable.getInt("interval");
-        if (_interval != -1) {
-          println("interval loaded: " + _interval);
-          exes[i].intervalValue = _interval;
-          intervalSliders.get(i).setValue(exes[i].intervalValue);
-        }
-      }
-      catch(Exception e) {
-        log2console(e+"\n");
-      }
+
+      //running time
+      float runningTime = defaultRunningTime;
+      if (executable.getString("runningTime")!=null)  runningTime = Float.parseFloat( executable.getString("runningTime") );
+      runningTimeSliders.get(i).setValue(runningTime);
+
+
       println("----------------------------");
-      //if (executable.hasKey("interval")) {
-      //  println("Stored interval value for exe " + i + ": "+ _interval);
-      //  exes[i].intervalValue = _interval;
-      //}
     }
   } else {
     println("Didn't find any executable data in saved data.");
   }
-  loadingSettings = false;
+
+  //interval
+  //int _interval = -1;
+  //try {
+  //  _interval = userpref.getInt("interval");
+  //  if (_interval != -1) {
+  //    println("interval loaded.");
+  //    intervalValue = _interval;
+  //    intervalSlider.setValue(intervalValue);
+  //  }
+  //}
+  //catch(Exception e) {
+  //  log2console(e+"\n");
+  //}
+  //if (userpref.hasKey("interval")) {
+  //  println("interval value: "+userpref.getInt("interval"));
+  //  intervalValue = userpref.getInt("interval");
+  //}
 }
-
-
 
 
 void saveSettings() {
@@ -90,12 +95,14 @@ void saveSettings() {
     } else {
       executable.setString("type", "");
     }
-    //save interval
-    executable.setInt("interval", exes[i].intervalValue);
+    executable.setString("runningTime", runningTimeSliders.get(i).getValue()+"");
     //save [executable] to [executables]
     executables.setJSONObject(i, executable);
   }
   userpref.setJSONArray("executables", executables);
+
+  //save interval
+  //userpref.setInt("interval", intervalValue);
 
   //save all to json file
   saveJSONObject(userpref, dataFileName);
