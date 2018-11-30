@@ -3,30 +3,29 @@ import java.awt.Robot;
 import javax.swing.JFileChooser;
 
 /////////////////////////// SETTINGS, CHANGE AS YOU NEEDED /////////////
-int n = 3;//number of projects that needs to be scheduled by this app
-//int intervalValue = 10; //how long does each project run [seconds]
+int n = 9;//number of projects that needs to be scheduled by this app
+int intervalValue = 40; //how long does each project run [seconds]
 boolean AUTO_RUN = false; //if run the projects automatically when this application starts
+int defaultRunningTime = 60; //how long does each project run [seconds]
 ////////////////////////////////////////////////////////////////////////
 
 
 
-Timer[] timers = new Timer[n];
+Timer timer;
 
 //cp5 elements
 ControlP5 cp5;
 ArrayList<Textarea> filePathTextAreas;
 ArrayList<Button> chooseFileButtons;
 ArrayList<RadioButton> fileTypeButtons;
-ArrayList<Slider> intervalSliders;
+ArrayList<Slider> runningTimeSliders;
 ArrayList<Type> allTypes;
 Button saveSettings;
 ButtonListener choosePathListener;
 TypeListener chooseTypeListener;
-SliderListener chooseIntervalListener;
 Toggle runToggle;
 boolean justStarted;
-boolean loadingSettings;
-Slider intervalSlider;
+//Slider intervalSlider;
 
 //colors
 color bgColor = color(0, 0, 0);
@@ -63,21 +62,20 @@ public enum Type {
 JSONObject userpref;
 String dataFileName = "userpref.json";
 
-void setup() {
-  size(900, 600);
+void settings() {
   pixelDensity(2);
-  cp5 = new ControlP5(this);
+  size(900, 800);
+}
 
+void setup() {
+  cp5 = new ControlP5(this);
   filePathTextAreas = new ArrayList<Textarea>();
   chooseFileButtons = new ArrayList<Button>();
   fileTypeButtons = new ArrayList<RadioButton>();
-  intervalSliders = new ArrayList<Slider>();
+  runningTimeSliders = new ArrayList<Slider>();
 
   choosePathListener = new ButtonListener();
   chooseTypeListener = new TypeListener();
-  chooseIntervalListener = new SliderListener();
-
-  loadingSettings = true;
 
   for (int i=0; i < n; i++) {
     //exes
@@ -107,23 +105,22 @@ void setup() {
       rb.addItem(Type.values()[i2] + "_" + i, i2);
     }
     fileTypeButtons.add(rb);
-    //interval sliders
-    intervalSlider = cp5.addSlider("interval"+i)
-      .setPosition(gPadding+inputFieldW+padding*2+chooseFileBtnW+90, (inputFieldH+padding) * i + gPadding)
-      .setRange(1, 180)
-      .setNumberOfTickMarks(180)
-      .snapToTickMarks(true)
-      //.setSliderMode(0)
-      .setValue(exes[i].intervalValue)
-      .addListener(chooseIntervalListener)
-      .setLabel("(second)")
-      .setSize(180, padding);
-    intervalSliders.add(intervalSlider);
-
-    timers[i] = new Timer(exes[i].intervalValue*1000);//define a timer for 1 to 10 seconds long
+    //sliders
+    Slider slider = cp5.addSlider("runningTime"+i);
+    slider.setValue(defaultRunningTime);
+    slider.setSize(inputFieldW, padding);
+    slider.setRange(0, 600);
+    //slider.addListener(runningTimeChange);
+    slider.setPosition(gPadding, (inputFieldH + padding) * i + gPadding + inputFieldH );
+    runningTimeSliders.add(slider);
   }
 
-
+  //intervalSlider = cp5.addSlider("interval")
+  //  .setPosition(gPadding, (inputFieldH+padding) * n + gPadding)
+  //  .setRange(1, 180)
+  //  .setValue(intervalValue)
+  //  .setLabel("(second)")
+  //  .setSize(200, padding);
 
   runToggle = cp5.addToggle("toggleRun")
     .setPosition(gPadding, (inputFieldH+padding) * (n+1) + gPadding)
@@ -145,23 +142,23 @@ void setup() {
     .setLineHeight(10)
     .setPosition(gPadding, height-consoleHeight-gPadding);
 
+
+  timer = new Timer(5000);//define a timer for 1 to 10 seconds long
   index = 0;
 
   loadSettings();
 
-  for (int i=0; i < n; i++) {
-    (intervalSliders.get(i)).setValue(exes[i].intervalValue);
-  }
+  //intervalSlider.setValue(intervalValue);
   runToggle.setValue(AUTO_RUN);
 }
 
 
 void draw() {
-  //println(timer.totalTime);
-  background(0);
+  background(bgColor);
   if (running) {
     run();
     drawRunningIndicator();
+    drawLeftTime();
   }
 }
 
@@ -171,11 +168,16 @@ void drawRunningIndicator() {
   ellipse(width - gPadding, gPadding, 10, 10);
 }
 
+void drawLeftTime() {
+  textAlign(RIGHT, RIGHT);
+  text("Seconds left: " + timer.getTimeLeft(), width-gPadding, gPadding+30);
+}
+
 void execute(String path, boolean isProcessing) {
   if (isProcessing) {
     String sketchFolderPath = path.substring(0, path.lastIndexOf('/')+1);
     try {
-      Runtime.getRuntime().exec("/Downloads/Processing/processing-java --sketch=" + sketchFolderPath + " --run");
+      Runtime.getRuntime().exec("/usr/local/bin/processing-java --sketch=" + sketchFolderPath + " --run");
     }
     catch(Exception e) {
       println(e);
@@ -185,15 +187,13 @@ void execute(String path, boolean isProcessing) {
   }
 }
 
-
 void run() {
 
   String noTypeSetErrorMsg = ":    type hasn't been set.";
   String noPathErrorMsg = ":    file path isn't set.";
 
-  //log2console("" + index);
+  if (timer.isFinished()) {
 
-  if (timers[index].isFinished()) {
     int previousIndex = index==0 ? n-1 : index-1;
     Type previousType = exes[previousIndex].TYPE;
 
@@ -203,21 +203,23 @@ void run() {
       && previousType != null
       && !justStarted) {
       try {
+        if(!focused) {
         Robot r = new Robot();
         println("COMMAND + Q");
         r.keyPress(java.awt.event.KeyEvent.VK_META);
         r.keyPress(java.awt.event.KeyEvent.VK_Q);
         r.keyRelease(java.awt.event.KeyEvent.VK_META);
         r.keyRelease(java.awt.event.KeyEvent.VK_Q);
+        }
       }
       catch(Throwable e) {
         println(e);
-        // println("Quitting Program Failed. Terminating Program...");
+        // println("Quiting Program Failed. Terminating Program...");
         exit();
       }
     }
-
     justStarted = false;
+
     delay(1500);
 
     //execute the new program
@@ -225,29 +227,22 @@ void run() {
       switch(exes[index].TYPE) {
       case UNITY:
         //println(index + processingOnlyTypeErrorMsg);
-        timers[index].updateSavedTime();
         execute(exes[index].filepath, false);
         break;
       case PROCESSING:
-        timers[index].updateSavedTime();
         execute(exes[index].filepath, true);
         break;
       case VIDEO:
-        //println(index + processingOnlyTypeErrorMsg);  
-        timers[index].updateSavedTime();
+        //println(index + processingOnlyTypeErrorMsg);        
         execute(exes[index].filepath, false);
-        log2console("executing video");
         break;
       case WEB:
-        timers[index].updateSavedTime();
-        execute(exes[index].filepath, false);
-        log2console("executing web");
-        break;
+      execute(exes[index].filepath, false);
+      break;
       default:
         println(index + noTypeSetErrorMsg);        
         break;
       }
-      log2console("" + exes[index].filepath);
     } else {
       if (exes[index].TYPE == null) {
         println(index + noTypeSetErrorMsg);
@@ -257,21 +252,20 @@ void run() {
       }
     }
 
+    timer.updateTotalTime(getInterval(index));
+
     //progress index
-    if (!justStarted) {
-      if (index < n - 1) {
-        index++;
-      } else {
-        index = 0;
-      }
+    if (index < n - 1) {
+      index++;
+    } else {
+      index = 0;
     }
   }
 }
 
 void turnOn() {
   index = 0;
-  timers[index].updateSavedTime();
-
+  timer.updateSavedTime();
   running = true;
   bgColor = runningBGColor;
   justStarted = true;
@@ -281,6 +275,12 @@ void turnOff() {
   index = 0;
   running = false;
   bgColor = defaultBGColor;
+}
+
+int getInterval(int index) {
+  int intervalThisSession = (int)(runningTimeSliders.get(index).getValue() * 1000);
+  println("interval this session: " + intervalThisSession);
+  return intervalThisSession;
 }
 
 //button action
@@ -312,7 +312,30 @@ void controlEvent(ControlEvent theEvent) {
     int groupID = Integer.parseInt(name.replaceAll("[\\D]", ""));
     exes[groupID].TYPE =  Type.values()[ (int)theEvent.getGroup().getValue() ];
   }
+
+  //for (int i=0; i<runningTimeSliders.size(); i++) {
+  //  if (theEvent.getController()==runningTimeSliders.get(i)) {
+
+  //  }
+  //}
+
+
+  //if (intervalSlider != null) {
+  //  if (theEvent.getController().getName() == intervalSlider.getName()) {
+  //    timer.updateTotalTime(interval * 1000);
+  //    println("Update total time to: " + interval);
+  //  }
+  //}
 }
+
+void interval (int input) {
+  //if (timer!=null) {
+  //  timer.updateTotalTime(input * 1000);
+  //  intervalValue = input;
+  //  println("interval is set to: " + input  + " sec");
+  //}
+}
+
 
 //Select Button
 class ButtonListener implements ControlListener {
@@ -332,7 +355,7 @@ class ButtonListener implements ControlListener {
           selectFolder("Select Unity Build", "execfileSelected");
           println("is unity");
         } else {
-          selectInput("Select Processing .pde file or video file or web file", "execfileSelected");
+          selectInput("Select Processing .pde file or video file", "execfileSelected");
         }
       } else {
         log2console("Please select TYPE first\n");
@@ -342,40 +365,6 @@ class ButtonListener implements ControlListener {
     }
   }
 }
-
-//Select interval
-class SliderListener implements ControlListener {
-  public void controlEvent(ControlEvent theEvent) {
-    //println(theEvent.getController());
-    //println("!!!");
-    for (int i=0; i < intervalSliders.size(); i++) {
-
-      Slider activeSlider = intervalSliders.get(i);
-
-      if (activeSlider != null) {
-        if (theEvent.getController().getName() == activeSlider.getName()) {
-          timers[i].updateTotalTime(exes[i].intervalValue * 1000);
-          exes[i].intervalValue = parseInt(activeSlider.getValue());
-          if (!loadingSettings) {
-            println("Update time for exe " + i + " to: " + exes[i].intervalValue);
-          }
-        }
-      }
-    }
-  }
-}
-
-
-//void interval (int input) {
-//  for (int i=0; i < n; i++) {
-//    if (timers[i]!=null) {
-//      timers[i].updateTotalTime(input * 1000);
-//      exes[i].intervalValue = input;
-//      println("interval is set to: " + input  + " sec");
-//    }
-//  }
-//}
-
 
 void execfileSelected(File selection) {
   if (selection == null) {

@@ -1,17 +1,47 @@
 {"executables": [
   {
-    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master/NMAexhibition_file_collection/puppa-website-master 2/index.html",
-    "interval": 11,
-    "type": "WEB"
-  },
-  {
-    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master/NMAexhibition_file_collection/Trump On Hillary's Look and Stamina - Presidential Debate Highlights.mp4",
-    "interval": 22,
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/MECHANISMS AT WORK_2.mp4",
+    "runningTime": "9.0",
     "type": "VIDEO"
   },
   {
-    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master/NMAexhibition_file_collection/panda.mp4",
-    "interval": 11,
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/CoverCards/DANIEL-01.png",
+    "runningTime": "4.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/index.html",
+    "runningTime": "580.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/CoverCards/DAPHNELLY-01.png",
+    "runningTime": "4.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/indexbbyc.html",
+    "runningTime": "580.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/CoverCards/ERICA-01.png",
+    "runningTime": "4.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/interwoven index.html",
+    "runningTime": "580.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/CoverCards/BUSAYO-01.png",
+    "runningTime": "4.5",
+    "type": "WEB"
+  },
+  {
+    "path": "/Users/m.hilbert/Downloads/NMASpaceOS-master 3/NMAexhibition_file_collection/interwoven index.html",
+    "runningTime": "205.5",
     "type": "WEB"
   }
 ]}
